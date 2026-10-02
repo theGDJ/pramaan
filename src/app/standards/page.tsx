@@ -6,7 +6,7 @@ import { standards } from "@/db/schema";
 export const dynamic = "force-dynamic";
 
 export default async function StandardsPage() {
-  const rows = await db.select().from(standards).orderBy(standards.code).limit(100);
+  const rows = await db.select().from(standards).orderBy(standards.code).limit(250);
   return (
     <>
       <Nav />

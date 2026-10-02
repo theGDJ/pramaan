@@ -34,12 +34,12 @@ type StandardRow = typeof standards.$inferSelect;
 type DocRow = typeof knowledgeDocs.$inferSelect;
 type LabRow = typeof labs.$inferSelect;
 
-const IS_RE = /(?:is|आईएस)[\s:/-]*(\d{2,6})(?:\s*[-–]\s*(\d+))?/i;
+const IS_RE = /(?:is|आईएस)[\s:/-]*(\d{2,6})(?:\s*[-–]\s*(\d+))?(?:\s*[-–]\s*(\d+))?/i;
 
 /* ------------------------------- helpers ------------------------------- */
 
-function normalizeCode(num: string, part?: string): string {
-  return part ? `IS ${num}-${part}` : `IS ${num}`;
+function normalizeCode(num: string, part?: string, subPart?: string): string {
+  return [num, part, subPart].filter(Boolean).join("-");
 }
 
 async function findByCodeCodeFragment(fragment: string): Promise<StandardRow[]> {
@@ -206,8 +206,10 @@ async function answerGreeting(locale: Locale): Promise<EngineAnswer> {
 
 async function answerStandardLookup(query: string, locale: Locale): Promise<EngineAnswer> {
   const m = query.match(IS_RE);
-  const fragment = m ? normalizeCode(m[1], m[2]) : query.trim();
-  const rows = await findByCodeCodeFragment(fragment.replace(/^IS\s*/i, "IS ").slice(3));
+  // Use every part number the user typed (e.g. "IS 302-2-24") so a query for a
+  // specific part resolves to that row and not to a sibling in the same series.
+  const fragment = m ? normalizeCode(m[1], m[2], m[3]) : query.trim();
+  const rows = await findByCodeCodeFragment(fragment);
   if (!rows.length) {
     const alt = await fullTextStandards(query);
     if (alt.length) return answerFindStandard(query, locale, matchProducts(query));

@@ -33,7 +33,7 @@ export async function GET(req: NextRequest) {
     .select()
     .from(standards)
     .where(conds.length ? and(...conds) : undefined)
-    .limit(100);
+    .limit(250);
 
   // Rank: code/title/keyword hits before incidental summary substring hits
   if (q) {
