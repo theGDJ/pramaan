@@ -23,6 +23,7 @@ export async function GET(req: NextRequest) {
           ilike(standards.code, `%${w}%`),
           ilike(standards.title, `%${w}%`),
           ilike(standards.summary, `%${w}%`),
+          ilike(standards.qco, `%${w}%`),
           sql`EXISTS (SELECT 1 FROM unnest(${standards.keywords}) k WHERE lower(k) LIKE ${"%" + w + "%"})`,
         )!,
       );
@@ -47,6 +48,7 @@ export async function GET(req: NextRequest) {
         if (code.includes(w)) wgt += 8;
         if (title.includes(w)) wgt += 5;
         if (keys.includes(w)) wgt += 4;
+        if ((s.qco ?? "").toLowerCase().includes(w)) wgt += 2;
         if (s.summary.toLowerCase().includes(w)) wgt += 1;
       }
       if (s.mandatory) wgt += 0.5;

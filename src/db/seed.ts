@@ -4,6 +4,16 @@ import { STD_WAVE4, STEEL_QCO } from "@/db/seed-waves";
 import { STD_WAVE5 } from "@/db/seed-waves-5";
 import { STD_WAVE6 } from "@/db/seed-waves-6";
 import { STD_WAVE7 } from "@/db/seed-waves-7";
+import { STD_WAVE8 } from "@/db/seed-waves-8";
+import { STD_WAVE9 } from "@/db/seed-waves-9";
+import { STD_WAVE10 } from "@/db/seed-waves-10";
+import { STD_WAVE11 } from "@/db/seed-waves-11";
+import { STD_WAVE12 } from "@/db/seed-waves-12";
+import { STD_WAVE13 } from "@/db/seed-waves-13";
+import { STD_WAVE14 } from "@/db/seed-waves-14";
+import { STD_WAVE15 } from "@/db/seed-waves-15";
+import { STD_WAVE16 } from "@/db/seed-waves-16";
+import { LABS_NETWORK, buildLabs } from "@/db/seed-labs";
 
 /* ------------------------------ STANDARDS ------------------------------ */
 
@@ -1386,6 +1396,23 @@ export const LICENCES_WAVE3 = [
 
 /* ------------------------- SAMPLE COMPLAINTS ------------------------- */
 
+/* ------------------------ EXPANDED LAB NETWORK (WAVES 8+) ------------------------ */
+/* `seed-labs.ts` carries the full testing network — BIS laboratories, National
+ * Test House, the STQC/ERTL/ETDC electronics network, CSIR and government
+ * laboratories, private recognized labs in every state/UT and the AHC network.
+ * Rows that repeat the original seed's lab names are dropped so the directory
+ * never shows a facility twice. */
+
+const ORIGINAL_LAB_NAMES = new Set(
+  [...LABS, ...LABS_MORE, ...LABS_WAVE3].map((l) => l.name),
+);
+
+export const LABS_NETWORK_UNIQUE = buildLabs(LABS_NETWORK).filter(
+  (l) => !ORIGINAL_LAB_NAMES.has(l.name),
+);
+
+/* ------------------------- SAMPLE COMPLAINTS ------------------------- */
+
 export const COMPLAINTS = [
   { ticket: "BISC-2025-000112", name: "Ramesh Iyer", email: "ramesh.iyer@example.com", category: "product-quality", product: "Cement", description: "Cement bags purchased from a local dealer are not gaining strength. The ISI mark and licence number are present but the batch appears old and lumpy.", status: "open", createdAt: new Date("2025-04-02") },
   { ticket: "BISC-2025-000148", name: "Priya Sharma", email: "priya.sharma@example.com", category: "marking misuse", product: "TMT bars", description: "Dealer supplied TMT bars with an ISI mark but no licence number on the bundle tag. Requesting verification of the marking before I use them.", status: "in-progress", createdAt: new Date("2025-04-11") },
@@ -1418,14 +1445,32 @@ export async function seed(dbOverride?: typeof db) {
     ...STD_WAVE5,
     ...STD_WAVE6,
     ...STD_WAVE7,
+    ...STD_WAVE8,
+    ...STD_WAVE9,
+    ...STD_WAVE10,
+    ...STD_WAVE11,
+    ...STD_WAVE12,
+    ...STD_WAVE13,
+    ...STD_WAVE14,
+    ...STD_WAVE15,
+    ...STD_WAVE16,
   ];
   const ALL_DOCS = [...DOCS, ...DOCS_MORE, ...DOCS_WAVE3];
-  const ALL_LABS = [...LABS, ...LABS_MORE, ...LABS_WAVE3];
+  const ALL_LABS = [
+    ...LABS,
+    ...LABS_MORE,
+    ...LABS_WAVE3,
+    ...LABS_NETWORK_UNIQUE,
+  ];
   const ALL_LICENCES = [...LICENCES, ...LICENCES_MORE, ...LICENCES_WAVE3];
 
-  await target.insert(standards).values(ALL_STANDARDS as never);
+  /* insert in chunks — the expanded catalogue is ~2000 rows */
+  const CHUNK = 250;
+  for (let i = 0; i < ALL_STANDARDS.length; i += CHUNK)
+    await target.insert(standards).values(ALL_STANDARDS.slice(i, i + CHUNK) as never);
   await target.insert(knowledgeDocs).values(ALL_DOCS as never);
-  await target.insert(labs).values(ALL_LABS as never);
+  for (let i = 0; i < ALL_LABS.length; i += CHUNK)
+    await target.insert(labs).values(ALL_LABS.slice(i, i + CHUNK) as never);
   await target.insert(licences).values(ALL_LICENCES as never);
 
   /* complaints are demo rows — replace wholesale so re-seeding is idempotent */

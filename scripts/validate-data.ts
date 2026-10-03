@@ -19,6 +19,16 @@ import { STD_WAVE4 } from "../src/db/seed-waves";
 import { STD_WAVE5 } from "../src/db/seed-waves-5";
 import { STD_WAVE6 } from "../src/db/seed-waves-6";
 import { STD_WAVE7 } from "../src/db/seed-waves-7";
+import { STD_WAVE8 } from "../src/db/seed-waves-8";
+import { STD_WAVE9 } from "../src/db/seed-waves-9";
+import { STD_WAVE10 } from "../src/db/seed-waves-10";
+import { STD_WAVE11 } from "../src/db/seed-waves-11";
+import { STD_WAVE12 } from "../src/db/seed-waves-12";
+import { STD_WAVE13 } from "../src/db/seed-waves-13";
+import { STD_WAVE14 } from "../src/db/seed-waves-14";
+import { STD_WAVE15 } from "../src/db/seed-waves-15";
+import { STD_WAVE16 } from "../src/db/seed-waves-16";
+import { LABS_NETWORK_UNIQUE } from "../src/db/seed";
 import { PRODUCTS, matchProducts } from "../src/lib/assistant/products";
 import {
   complaints as complaintsTable,
@@ -62,9 +72,18 @@ const allStandards = [
   ...STD_WAVE5,
   ...STD_WAVE6,
   ...STD_WAVE7,
+  ...STD_WAVE8,
+  ...STD_WAVE9,
+  ...STD_WAVE10,
+  ...STD_WAVE11,
+  ...STD_WAVE12,
+  ...STD_WAVE13,
+  ...STD_WAVE14,
+  ...STD_WAVE15,
+  ...STD_WAVE16,
 ];
 const allDocs = [...DOCS, ...DOCS_MORE, ...DOCS_WAVE3];
-const allLabs = [...LABS, ...LABS_MORE, ...LABS_WAVE3];
+const allLabs = [...LABS, ...LABS_MORE, ...LABS_WAVE3, ...LABS_NETWORK_UNIQUE];
 const allLicences = [...LICENCES, ...LICENCES_MORE, ...LICENCES_WAVE3];
 
 const problems: string[] = [];
@@ -87,6 +106,7 @@ dup(PRODUCTS.map((p) => p.id));
 const CATS = new Set([
   "construction", "electrical", "electronics", "hallmark",
   "food", "plastics", "mechanical", "consumer",
+  "chemicals", "services",
 ]);
 const stdCodes = new Set(allStandards.map((s) => s.code));
 for (const s of allStandards) {
@@ -116,7 +136,7 @@ for (const d of allDocs) {
 /* ---- labs ---- */
 const CAPS = new Set([
   "electrical", "electronics", "construction", "mechanical",
-  "plastics", "food", "consumer", "hallmark",
+  "plastics", "food", "consumer", "hallmark", "chemicals",
 ]);
 const LAB_KINDS = new Set(["BIS Laboratory", "Recognized Laboratory", "AHC"]);
 for (const l of allLabs) {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { Search, BookMarked, ChevronRight, X } from "lucide-react";
 
 export type Std = {
@@ -29,13 +30,17 @@ const CATS: { id: string; label: string }[] = [
   { id: "plastics", label: "Plastics" },
   { id: "mechanical", label: "Mechanical" },
   { id: "consumer", label: "Consumer" },
+  { id: "chemicals", label: "Chemicals" },
+  { id: "services", label: "Management Systems" },
 ];
 
 export function StandardsClient({ initial }: { initial: Std[] }) {
+  /* deep links: /standards?q=cement&mandatory=true — read straight from the URL */
+  const params = useSearchParams();
   const [items, setItems] = useState(initial);
-  const [q, setQ] = useState("");
-  const [cat, setCat] = useState("all");
-  const [mandOnly, setMandOnly] = useState(false);
+  const [q, setQ] = useState(params.get("q") ?? "");
+  const [cat, setCat] = useState(params.get("category") ?? "all");
+  const [mandOnly, setMandOnly] = useState(params.get("mandatory") === "true");
   const [active, setActive] = useState<Std | null>(null);
 
   useEffect(() => {

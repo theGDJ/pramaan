@@ -46,14 +46,14 @@ const CAPABILITIES = [
   {
     icon: ShieldCheck,
     title: "Certification scheme guidance",
-    desc: "ISI (Scheme-I), CRS (Scheme-II), CoC (Scheme-IV) and FMCS — which one fits, and why.",
-    href: "/guide",
+    desc: "ISI (Scheme-I), CRS (Scheme-II), CoC (Scheme-IV), FMCS and hallmarking — with fees, documents and checklists.",
+    href: "/certification",
   },
   {
     icon: FileCheck2,
     title: "Process walkthroughs",
-    desc: "Step-by-step licensing journeys with audits, testing, fees and MSME concessions.",
-    href: "/guide",
+    desc: "Step-by-step licensing journeys with audits, testing, fees, MSME concessions and printable checklists.",
+    href: "/certification",
   },
   {
     icon: Gem,
