@@ -1,23 +1,12 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import { Fraunces, Space_Grotesk, JetBrains_Mono } from "next/font/google";
+/* fonts are self-hosted (bundled from npm via @fontsource-variable) so the
+ * app builds and renders identically with or without internet access —
+ * no Google-Fonts download required at build or runtime */
+import "@fontsource-variable/fraunces/full.css";
+import "@fontsource-variable/space-grotesk";
+import "@fontsource-variable/jetbrains-mono";
 import "./globals.css";
-
-const fraunces = Fraunces({
-  subsets: ["latin"],
-  variable: "--font-fraunces",
-  axes: ["SOFT", "WONK", "opsz"],
-});
-
-const grotesk = Space_Grotesk({
-  subsets: ["latin"],
-  variable: "--font-grotesk",
-});
-
-const jetbrains = JetBrains_Mono({
-  subsets: ["latin"],
-  variable: "--font-jetbrains",
-});
 
 export const metadata: Metadata = {
   title: "PRAMAAN — AI Assistant for Indian Standards & BIS Services | SIH26107",
@@ -27,7 +16,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className={`${fraunces.variable} ${grotesk.variable} ${jetbrains.variable}`}>
+    <html lang="en">
       <body className="bg-ink-950 font-ui text-slate-200 antialiased">{children}</body>
     </html>
   );

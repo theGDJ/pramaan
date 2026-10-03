@@ -61,13 +61,15 @@ export default async function DashboardPage() {
   ).map((r) => ({ cat: r.cat, c: Number(r.c) }));
   const catTotal = Math.max(1, catRows.reduce((a, r) => a + r.c, 0));
 
-  // donut geometry
-  let acc = 0;
-  const donut = catRows.map((r) => {
-    const start = acc / catTotal;
-    acc += r.c;
-    return { ...r, start, end: acc / catTotal };
-  });
+  // donut geometry (cumulative positions computed immutably)
+  const donut = catRows.reduce<{ cat: string; c: number; start: number; end: number }[]>(
+    (out, r) => {
+      const start = out.length ? out[out.length - 1].end : 0;
+      out.push({ ...r, start, end: start + r.c / catTotal });
+      return out;
+    },
+    [],
+  );
   const arc = (a0: number, a1: number) => {
     const R = 42;
     const cx = 50;

@@ -1400,12 +1400,15 @@ export const COMPLAINTS = [
 ];
 
 
-export async function seed() {
+/** Seeds all content tables. `dbOverride` lets the pglite bootstrap pass its
+ * own connection (avoiding a circular module reference at startup). */
+export async function seed(dbOverride?: typeof db) {
+  const target = dbOverride ?? db;
   console.log("Seeding PRAMAAN knowledge base…");
-  await db.delete(standards);
-  await db.delete(knowledgeDocs);
-  await db.delete(labs);
-  await db.delete(licences);
+  await target.delete(standards);
+  await target.delete(knowledgeDocs);
+  await target.delete(labs);
+  await target.delete(licences);
 
   const ALL_STANDARDS = [
     ...STD,
@@ -1420,14 +1423,14 @@ export async function seed() {
   const ALL_LABS = [...LABS, ...LABS_MORE, ...LABS_WAVE3];
   const ALL_LICENCES = [...LICENCES, ...LICENCES_MORE, ...LICENCES_WAVE3];
 
-  await db.insert(standards).values(ALL_STANDARDS as never);
-  await db.insert(knowledgeDocs).values(ALL_DOCS as never);
-  await db.insert(labs).values(ALL_LABS as never);
-  await db.insert(licences).values(ALL_LICENCES as never);
+  await target.insert(standards).values(ALL_STANDARDS as never);
+  await target.insert(knowledgeDocs).values(ALL_DOCS as never);
+  await target.insert(labs).values(ALL_LABS as never);
+  await target.insert(licences).values(ALL_LICENCES as never);
 
   /* complaints are demo rows — replace wholesale so re-seeding is idempotent */
-  await db.delete(complaints);
-  await db.insert(complaints).values(COMPLAINTS as never);
+  await target.delete(complaints);
+  await target.insert(complaints).values(COMPLAINTS as never);
 
   console.log(
     `Seeded ${ALL_STANDARDS.length} standards, ${ALL_DOCS.length} docs, ` +

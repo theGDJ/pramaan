@@ -82,9 +82,9 @@ const CAPABILITIES = [
 ];
 
 const PIPELINE = [
-  { icon: BrainCircuit, tag: "01 · Understand", text: "Intent + entity engine reads your plain-language query — product names, IS numbers, Hindi or English." },
-  { icon: Database, tag: "02 · Retrieve", text: "Scored retrieval across the standards catalogue, scheme documents, processes and lab network." },
-  { icon: Quote, tag: "03 · Answer + cite", text: "Composed guidance always carries source references — standard codes, clauses and BIS documents." },
+  { icon: BrainCircuit, tag: "01 · Understand", text: "An embedded AI language model — a GGUF running on this server, no cloud API — reads your plain-language question: product names, IS numbers, Hindi or English." },
+  { icon: Database, tag: "02 · Retrieve", text: "Scored retrieval across the standards catalogue, scheme documents, processes and lab network grounds every answer in real BIS data." },
+  { icon: Quote, tag: "03 · Answer + cite", text: "The model composes its reply from those facts — and standard codes, clauses and BIS documents are always cited alongside." },
 ];
 
 export default async function Home() {
