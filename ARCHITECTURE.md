@@ -1,7 +1,7 @@
 # PRAMAAN — Code Architecture Report
 
 **App:** AI assistant for Indian Standards & BIS services (Smart India Hackathon 2026 · SIH26107)
-**Stack:** Next.js 16 (App Router, Turbopack) · React 19 · TypeScript · Tailwind CSS v4 · PostgreSQL + Drizzle ORM · framer-motion · lucide-react
+**Stack:** Next.js 16 (App Router, Turbopack) · React 19 · TypeScript · Tailwind CSS v4 · PostgreSQL + Drizzle ORM · **embedded LLM: node-llama-cpp (llama.cpp) running a local GGUF model** · framer-motion · lucide-react
 
 ```
 Browser (React clients)
@@ -10,12 +10,21 @@ Browser (React clients)
 Next.js API routes  (/api/chat, /api/finder, /api/standards, /api/labs,
    │                /api/verify, /api/complaints, /api/stats, /api/health)
    ▼
-lib/assistant/engine.ts  ── the "AI" brain (intent → retrieve → compose → cite)
+lib/assistant/engine.ts  ── the AI brain (retrieve facts → LLM composes → cite)
+   │            └── lib/assistant/retriever.ts (query → DB fact sheet)
+   │            └── lib/assistant/llm.ts       (embedded GGUF model, llama.cpp)
    │            └── lib/assistant/products.ts  (20 product-family profiles)
    │            └── lib/i18n.ts                (EN/HI locale detection + UI strings)
    ▼
 db/index.ts (pg Pool + Drizzle)  →  PostgreSQL (app_db)
 ```
+
+**Quick start:** `npm install` → copy `.env.example` to `.env` → `npm run model:download`
+(fetches the embedded GGUF model, no API keys needed) → `npm run dev`
+(the `predev` hook auto-applies schema + seed to the embedded PGlite database on
+first run; for a real PostgreSQL server set a `postgres://…` DATABASE_URL and run
+`npm run db:push && npm run db:seed`).
+Optional: `npm run ai:warmup` pre-loads the model so the first chat is fast.
 
 ---
 
@@ -61,36 +70,30 @@ Run with `npx tsx --env-file=.env src/db/seed.ts`. It deletes all four content t
 - Each profile: bilingual label, `aliases` (English + Hindi: "tmt", "सरिया", "saria"…), `category`, the applicable IS codes, `scheme` (scheme1/scheme2/hallmark/scheme4/voluntary), `mandatory` flag, and a bilingual regulatory note.
 - `matchProducts(query)`: lowercases the query, scans every alias as a substring; aliases longer than 4 chars score 3, shorter score 2; returns the **top 3 profiles** by score. This powers both the Finder page and the assistant's product enrichment.
 
-### `src/lib/assistant/engine.ts` — the assistant brain
-A deterministic, retrieval-augmented **rule engine** (no external LLM needed — every answer is composed from the DB, so it's fast, free, offline-capable and always citable).
+### `src/lib/assistant/engine.ts` — the assistant brain (embedded-model edition)
+The assistant is powered by a **language model embedded in the server process** — a GGUF file executed with llama.cpp (`node-llama-cpp`). There is **no cloud LLM API**: no keys, no per-token cost, no data leaving the box. The shipped default is *Gemma 3 270M (Q4_K_M, ~241 MB)* — deliberately small so it runs on any CPU; `AI_GGUF_PATH`/`AI_MODEL_URL` can swap in any instruct-tuned GGUF (Qwen2.5-0.5B-Instruct, SmolLM2-360M, Llama-3.2-1B, …) for richer prose.
 
 **Pipeline** (`answer(query, localeHint)`):
-1. **Locale detection** — `detectLocale()` on the raw query.
-2. **Intent classification** — `classify()`:
-   - If the query contains an IS-code pattern (`IS_RE = /(?:is|आईएस)[\s:/-]*(\d{2,6})(?:\s*[-–]\s*(\d+))?/i` — matches "IS 456:2000", "is-694", "आईएस 2347") **and** the rest of the query is < 30 chars → `standard_lookup`.
-   - Otherwise, score 9 intent groups (`hallmarking`, `labs`, `consumer`, `fees`, `process`, `scheme`, `find_standard`, `greeting`, `about`) against bilingual keyword lists — each hit scores 1, keywords longer than 5 chars score 2; the highest-scoring intent wins.
-   - No keyword hit but an IS code present → `standard_lookup`; a product alias matched → `find_standard`; else `fallback`.
-3. **Product matching** — `matchProducts()` runs for every query (used to enrich several intents).
-4. **Dispatch to a composer** — one function per intent, each returning `{ intent, text (markdown), citations[], suggestions[], locale }`.
+1. **Locale detection** — `detectLocale()` on the raw query (Devanagari → Hindi).
+2. **Retrieval** (`retriever.ts`) — distils the query into a numbered **fact sheet**:
+   - IS-code patterns (`IS 456:2000`, `is-694`, `आईएस 2347`) trigger exact catalogue lookups;
+   - scored full-text over standard titles/summaries/keywords (token frequency, +0.5 if mandatory);
+   - product-alias profiles (`products.ts`) pull their DB standard rows + lab categories;
+   - keyword-scored knowledge-doc search with intent-based kind boosts (fees/hallmark/process/…);
+   - labs scored by product category + token overlap.
+   Emits `{ standards, docs, labs, profiles, factLines[], citations[] }`.
+3. **Model generation** (`llm.ts`) — the LLM is prompted with the fact lines (`TASK … FACTS … Question … Answer`; 96 max tokens, temperature 0.25, repetition/frequency penalties) — never raw table dumps. `sanitiseCompletion()` guards output quality: cuts prompt echoes, stops at the first repeated line (loop detection), caps bullets, and judges whether the prose is usable.
+4. **Deterministic payload blocks** — standard codes/titles/schemes, the first two key clauses, and lab cards are rendered **straight from DB rows** and appended to the model's prose: displayed facts are exact data, and citations always map to retrieved rows. If the model file is missing (`npm run model:download` not run) or its prose fails the sanity check, the answer is still fully formed from these blocks.
+5. **Result** — `{ intent, text (markdown), citations[], suggestions[], locale }`, the same contract as before, so `ChatClient`, session logging and the Insights dashboard are unchanged. The `intent` (lightweight keyword classifier) is kept purely for analytics and suggestion chips.
 
-**Retrieval helpers:**
-- `findByCodeCodeFragment(fragment)` — `LIKE '%fragment%'` on the `code` column.
-- `fullTextStandards(query)` — tokenizes (Unicode-aware, strips punctuation, keeps words > 2 chars, max 6 tokens), builds an `OR` across `lower(title)`, `lower(summary)`, and `lower(array_to_string(keywords,' '))`, then re-scores rows in JS by **token frequency** in `title+summary+keywords`, +0.5 if `mandatory`; returns top 5.
-- `docsByKind(...kinds)` — filters the knowledge-doc table by kind.
-- `labsFor(categories)` — scores labs +2 per matching capability, returns top 4.
+**Why model prose + deterministic payload?** the default 270 M model is good at short paraphrasing but weak at long recall. Scoping its job to *compose* while the app renders *facts* keeps every citation true — and swapping in a larger instruct model (one env var) upgrades the prose with zero code changes.
 
-**Composers (each bilingual via the `L(locale, en, hi)` helper):**
-- `answerGreeting` — capability menu + starter suggestions.
-- `answerStandardLookup` — resolves the code, renders status/editions/QCO/scheme, **key clauses** (from the `sections` jsonb), related standards; citations include clause-level refs (e.g. `IS 269:2015 · Clause 7.2`). If the code isn't in the catalogue it falls back to full-text, then to a "not found" tip.
-- `answerFindStandard` — renders one block per matched product profile (applicable standards, scheme label, mandatory/voluntary verdict) with a citation per standard; if no profile matched, uses `fullTextStandards`.
-- `answerScheme` — the four conformity-assessment schemes; **enriched at dispatch time** if a product matched, appending a "For your product specifically" block.
-- `answerProcess` — 7-step ISI licensing journey + timeline, CRS variant note.
-- `answerHallmark` — mandatory/voluntary status, the three hallmark elements, and a **conditional 3-step verification guide** injected when the query mentions verify/check/HUID/जाँच.
-- `answerLabs` — labs matching the product's category with test-standards lists.
-- `answerConsumer` / `answerFees` / `answerAbout` — guidance articles with fee structure, concessions, complaint channels (BIS Care App, 1915) and penalties under the BIS Act 2016.
-- `answerFallback` — honest "not sure" + related standards from full-text search.
-
-Every composer always attaches **citations** (`{ kind: standard|doc|lab, ref, label, clause? }`) — the UI renders them as chips under each answer.
+### `src/lib/assistant/retriever.ts` — query → fact sheet
+- `standardsByCodeFragment(fragment)` — `LIKE '%fragment%'` on the `code` column.
+- `fullTextStandards(query)` — Unicode-aware tokenizer (words > 2 chars, max 6), OR-match across `lower(title)`, `lower(summary)`, `lower(array_to_string(keywords,' '))`, re-scored in JS by token frequency (+0.5 if mandatory); top 4.
+- `relevantDocs(query)` — token-overlap scoring over knowledge-doc title/keywords/body, with kind boosts per intent hints (fees/hallmark/process/labs/consumer/concept); top 3.
+- `labsFor(categories, tokens)` — +4 per matching capability, +1 per token hit; top 3.
+- `profileFact/stdFact/docFact/labFact` — render each row as one compact numbered fact line (`[i] …`), size-capped, markdown stripped; these lines are the **only** grounding the LLM receives, and every emitted line maps to a citation.
 
 ---
 
@@ -183,11 +186,11 @@ Every composer always attaches **citations** (`{ kind: standard|doc|lab, ref, la
 
 1. `ChatClient.send()` POSTs to `/api/chat`.
 2. Route validates and stores the user message; no session existed → a `chat_sessions` row is created, its UUID returned and cached in localStorage.
-3. Engine: `detectLocale("Is ISI mark mandatory for helmets?")` → `en` (no Devanagari).
-4. `classify()`: "isi" hits the `scheme` intent's keyword list (score 2, length > 5) → intent `scheme`.
-5. `matchProducts()` finds the `helmet` profile via alias "helmet".
-6. `answerScheme()` composes the four-scheme explainer; dispatch sees the product match and appends a helmet-specific block (IS 4151:2015, mandatory, Scheme-I) from `productBlock()`.
-7. Route stores the assistant message with `intent: "scheme"` and citations (`scheme-isi` doc + `IS 4151:2015` standard).
+3. Engine: `detectLocale(…)` → `en` (no Devanagari); `classifyLite()` → `scheme` (for analytics/suggestions).
+4. `retrieve()`: the `helmet` product profile maps to IS 4151:2015 → its DB row is pulled; the `scheme` keyword hints boost the scheme knowledge docs → fact lines are composed.
+5. The embedded model (llama.cpp + GGUF, in-process) receives the `[1]…[n]` fact lines + the question and writes 1–3 sentences.
+6. Deterministic payload blocks append the exact IS 4151:2015 row (title, mandatory flag, scheme, key clauses) plus lab cards.
+7. Route stores the assistant message with `intent` + `citations` (`scheme-isi` doc + `IS 4151:2015` standard).
 8. Client renders markdown + citation chips + "Ask next" suggestions.
 
 **"I make pressure cookers"** on the Finder:
@@ -197,11 +200,14 @@ Every composer always attaches **citations** (`{ kind: standard|doc|lab, ref, la
 
 ## 6. Design decisions & known limits
 
-**Why a rule engine instead of an LLM?** Answers are fully determined by the seeded database — deterministic, sub-100 ms, zero API cost, works offline, and every claim is traceable to a citation. The `intent` + `citations` logged per message also make the Insights dashboard real analytics rather than decoration.
+**Why an embedded model, and why Gemma 3 270M by default?** The brief was "an AI model built into the app, no API". `node-llama-cpp` gives in-process llama.cpp inference with prebuilt CPU binaries served from npm, so nothing external is needed at install or runtime. Weights are fetched by `scripts/download-model.mjs` from PyPI chunk packages (`gemma3-270m-q4-k-m-gguf-part1..4`) — chosen because PyPI is reachable from restricted build sandboxes where huggingface.co is not; `AI_MODEL_URL` accepts any direct GGUF URL (e.g. Hugging Face) for a quality upgrade to an instruct model such as Qwen2.5-0.5B-Instruct.
+
+**Trade-offs of a 270M default:** latency is a few hundred ms per answer on 2 CPU cores and RAM stays ≈0.7 GB, but prose is short and foreign-language (Hindi) generation is weak — the app instructs Devanagari replies, and falls back to English data blocks when the prose fails the sanity guard. Production deployments should set `AI_MODEL_URL` to an instruct GGUF; the fact-sheet pipeline, sanity guard and deterministic payloads are model-agnostic and keep citations exact either way.
 
 **Known limits (prototype scope):**
+- Answers are single-turn (the model sees only the current question); conversation history is stored for the UI but not yet fed back into the prompt.
 - Retrieval is `LIKE`/substring based, not true full-text or vector search — long natural-language queries may miss; ranking heuristics compensate.
 - Product coverage is 20 curated families; unknown products fall back to token search or a graceful "cannot map".
 - The licence registry is **demo data** — real verification needs the official BIS API/registry.
-- `docsByKind` and `labsFor` load full tables and filter in JS — fine at this scale (13 docs / 24 labs), would need SQL filtering at production scale.
+- `relevantDocs` and `labsFor` load full tables and filter in JS — fine at this scale (13 docs / 24 labs), would need SQL filtering at production scale.
 - `/api/chat` GET returns messages without auth — session UUIDs are the only access control, acceptable for a demo, not for production PII.

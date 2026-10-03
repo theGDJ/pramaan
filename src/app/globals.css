@@ -1,5 +1,12 @@
 @import "tailwindcss";
 
+:root {
+  /* provided by the bundled @fontsource-variable imports in layout.tsx */
+  --font-fraunces: "Fraunces Variable", Georgia, serif;
+  --font-grotesk: "Space Grotesk Variable", system-ui, sans-serif;
+  --font-jetbrains: "JetBrains Mono Variable", ui-monospace, monospace;
+}
+
 @theme {
   --color-ink-950: #05070d;
   --color-ink-900: #080c15;

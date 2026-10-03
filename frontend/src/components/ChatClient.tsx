@@ -199,6 +199,7 @@ export function ChatClient() {
   /* greeting + query param */
   useEffect(() => {
     if (greeted) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- mount-only boot: mark greeted, restore session, then fire first message
     setGreeted(true);
     const stored = (() => {
       try {
