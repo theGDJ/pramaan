@@ -51,10 +51,12 @@ Indexes: `standards(category)`, `standards(mandatory)`, `docs(kind)`, `labs(stat
 
 ### `src/db/seed.ts` — knowledge base loader
 Run with `npx tsx --env-file=.env src/db/seed.ts`. It deletes all four content tables then inserts:
-- **36 standards** — each with summary, keyword array (incl. Hindi Devanagari terms like "सीमेंट", "सरिया"), key clause sections, related standards.
-- **13 knowledge docs** — bilingual (EN + HI) explainers for schemes, QCOs, hallmarking, fees, consumer verification.
-- **24 labs** — BIS regional labs, National Test House, private recognized labs, with capability categories.
-- **16 licences** — demo registry entries across all four mark types (ISI, CRS, jeweller, HUID), including deliberately *suspended* and *expired* ones so the verifier shows realistic statuses.
+- **1,971 standards** — each with summary, keyword array (incl. Hindi Devanagari terms like "सीमेंट", "सरिया"), key clause sections, related standards. Authored through the block DSL in `seed-kit.ts`; waves 4–7 are legacy object literals and waves 8–16 are block-built files covering construction, electrical, electronics/CRS, mechanical, chemicals, plastics, food, consumer and management systems.
+- **29 knowledge docs** — bilingual (EN + HI) explainers for schemes, QCOs, hallmarking, fees, consumer verification.
+- **394 labs** — 41 BIS laboratories, 277 recognized labs (CSIR/STQC/CPRI/regional test houses) and 76 Assaying & Hallmarking Centres across all 36 states and UTs, with capability categories and the standards each tests.
+- **56 licences** — demo registry entries across all four mark types (ISI, CRS, jeweller, HUID), including deliberately *suspended* and *expired* ones so the verifier shows realistic statuses.
+
+`scripts/validate-data.ts` is the integrity gate for the catalogue: category whitelist, ≥3 keywords, at least one populated clause section, resolvable `related` codes, globally unique IS codes, licence mark-number regexes and Drizzle-shape checks. Run it with a `DATABASE_URL` in the environment (the seed module imports the DB client).
 
 ---
 
@@ -117,10 +119,10 @@ The assistant is powered by a **language model embedded in the server process** 
 ### `GET /api/standards` — catalogue search
 - Query params: `q`, `category`, `mandatory=true`, `code`.
 - Builds AND-combined conditions; for each `q` token an OR across `code ILIKE`, `title ILIKE`, `summary ILIKE` and a Postgres `EXISTS (SELECT 1 FROM unnest(keywords) k WHERE lower(k) LIKE …)` against the keyword array.
-- **Weighted ranking in JS:** code hit +8, title +5, keyword +4, summary +1, mandatory +0.5. No query → alphabetical by code. Limit 100.
+- **Weighted ranking in JS:** code hit +8, title +5, keyword +4, summary +1 (QCO text +2), mandatory +0.5. No query → alphabetical by code. Limit 250.
 
 ### `GET /api/labs` — lab directory
-- Loads all labs ordered by state/city, filters by `state`/`kind`/`capability` in JS, also returns the distinct state list for the UI dropdown.
+- Loads up to 1,000 labs ordered by state/city, filters by `state`/`kind`/`capability`/`q` (name, city or state substring) in JS, and also returns the distinct state list for the dropdown plus `total` and per-`kind` counts.
 
 ### `POST /api/verify` — licence / HUID checker
 - Uppercases the input, requires ≥ 4 chars, `ILIKE '%number%'` over `licences.mark_no`, returns up to 3 hits with full registry rows (holder, product, standard, status, validity, city) or `{ found: false }`.
@@ -150,12 +152,13 @@ The assistant is powered by a **language model embedded in the server process** 
 ### Pages
 | Route | Type | What it does |
 |---|---|---|
-| `/` (home) | Server | Hero + AskBar, preset question chips, **live DB stat tiles** (36 IS / 28 mandatory / 24 labs / 16 marks / N answered), 8-service grid, 3-step "how answers are built", 4 scheme cards, bilingual CTA |
+| `/` (home) | Server | Hero + AskBar, preset question chips, **live DB stat tiles** (1,971 IS / 588 mandatory / 394 labs / 56 marks / N answered), 8-service grid, 3-step "how answers are built", 4 scheme cards, bilingual CTA |
 | `/assistant` | Server shell + `ChatClient` | The chat app (below) |
 | `/finder` | Server shell + `FinderClient` | Product → standard wizard (below) |
 | `/standards` | Server shell + `StandardsClient` | Catalogue explorer: 180 ms-debounced search with `AbortController` cancellation, category chips, mandatory-only toggle, list + **detail drawer** (clauses, related, editions) |
 | `/labs` | Server shell + `LabsClient` | Directory: state / type / capability dropdowns → `/api/labs`, cards with contacts and tested standards |
-| `/guide` | Server | Renders knowledge docs from the DB grouped by kind (scheme, process, fees, hallmark, consumer) |
+| `/guide` | Server | Permanent redirect to `/certification` (keeps old links working) |
+| `/certification` | Server shell + `CertificationClient` | The certification guide: six scheme walkthroughs (Scheme-I ISI, CRS, FMCS, Hallmarking, Scheme-IV CoC, voluntary/ECO), a persona × product route recommender, step rails, printable document checklists (localStorage via `useSyncExternalStore`), indicative fee tables, marking rules, a five-route comparison matrix, a readiness checker, live QCO chips and an FAQ — with live counts and deep links into `/standards`, `/labs` and `/assistant` |
 | `/consumer` | Client | **Verify card** (POST /api/verify, sample numbers, status colour chips: valid/suspended/expired) + **complaint form** (POST /api/complaints → animated ticket confirmation) + helpline 1915 info |
 | `/dashboard` | Server | Insights: six count tiles, intent bar chart (CSS widths), category donut (SVG), top-cited standards, recent queries — all live from `/api/stats` data computed server-side |
 
@@ -209,5 +212,5 @@ The assistant is powered by a **language model embedded in the server process** 
 - Retrieval is `LIKE`/substring based, not true full-text or vector search — long natural-language queries may miss; ranking heuristics compensate.
 - Product coverage is 20 curated families; unknown products fall back to token search or a graceful "cannot map".
 - The licence registry is **demo data** — real verification needs the official BIS API/registry.
-- `relevantDocs` and `labsFor` load full tables and filter in JS — fine at this scale (13 docs / 24 labs), would need SQL filtering at production scale.
+- `relevantDocs` and `labsFor` load full tables and filter in JS — fine at this scale (29 docs / 394 labs), would need SQL filtering at production scale.
 - `/api/chat` GET returns messages without auth — session UUIDs are the only access control, acceptable for a demo, not for production PII.

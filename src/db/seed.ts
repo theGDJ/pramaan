@@ -4,6 +4,16 @@ import { STD_WAVE4, STEEL_QCO } from "@/db/seed-waves";
 import { STD_WAVE5 } from "@/db/seed-waves-5";
 import { STD_WAVE6 } from "@/db/seed-waves-6";
 import { STD_WAVE7 } from "@/db/seed-waves-7";
+import { STD_WAVE8 } from "@/db/seed-waves-8";
+import { STD_WAVE9 } from "@/db/seed-waves-9";
+import { STD_WAVE10 } from "@/db/seed-waves-10";
+import { STD_WAVE11 } from "@/db/seed-waves-11";
+import { STD_WAVE12 } from "@/db/seed-waves-12";
+import { STD_WAVE13 } from "@/db/seed-waves-13";
+import { STD_WAVE14 } from "@/db/seed-waves-14";
+import { STD_WAVE15 } from "@/db/seed-waves-15";
+import { STD_WAVE16 } from "@/db/seed-waves-16";
+import { LABS_NETWORK, buildLabs } from "@/db/seed-labs";
 
 /* ------------------------------ STANDARDS ------------------------------ */
 
@@ -871,7 +881,9 @@ export const STD_MORE = [
   { code: "IS 15778:2011", editions: 2, title: "Chlorinated Polyvinyl Chloride (CPVC) Pipes for Potable Hot and Cold Water", category: "plastics", status: "current", mandatory: false, scheme: "Specification (voluntary)", qco: null, summary: "CPVC pipes for hot and cold potable water distribution — compound designation, pressure rating and resistance to sustained hydrostatic pressure.", keywords: ["cpvc pipe", "hot water", "pipe", "plumbing", "पाइप"], sections: [{ clause: "5", title: "Material", summary: "CPVC compound designation and cell classification." }, { clause: "8", title: "Tests", summary: "Sustained pressure and burst pressure tests." }], related: ["IS 4985:2021"] },
   { code: "IS 11535:1986", editions: 2, title: "Method for Determination of Total Ash in Food Products", category: "food", status: "current", mandatory: false, scheme: "Specification (voluntary)", qco: null, summary: "Determination of total ash in food and agricultural products — controlled charring and incineration with calculation of ash on the dry basis.", keywords: ["ash test", "food analysis", "ash", "incineration", "परीक्षण"], sections: [{ clause: "3", title: "Procedure", summary: "Charring and incineration temperature control." }, { clause: "5", title: "Calculation", summary: "Ash content expressed on the dry weight basis." }], related: ["IS 11536:2007"] },
   { code: "IS 11536:2007", editions: 3, title: "Method for Determination of Moisture in Food Products", category: "food", status: "current", mandatory: false, scheme: "Specification (voluntary)", qco: null, summary: "Determination of moisture content in food products by oven drying or vacuum oven method — sample preparation, drying time and calculation.", keywords: ["moisture", "food analysis", "drying", "water content", "नमी"], sections: [{ clause: "3", title: "Sampling", summary: "Sample size and preparation requirements." }, { clause: "5", title: "Procedure", summary: "Oven temperature and drying to constant mass." }], related: ["IS 11535:1986"] },
-  { code: "IS 1418:2016", editions: 3, title: "Method for Determination of Iron in Foodstuffs", category: "food", status: "current", mandatory: false, scheme: "Specification (voluntary)", qco: null, summary: "Determination of iron in foodstuffs by colorimetric or atomic absorption method — sample digestion, reagent preparation and calibration procedure.", keywords: ["iron test", "food analysis", "mineral", "iron", "आयरन"], sections: [{ clause: "3", title: "Reagents", summary: "Standard iron solution and reagent preparation." }, { clause: "5", title: "Procedure", summary: "Sample digestion and measurement." }], related: ["IS 11536:2007"] },
+  { code: "IS 1418:2016", editions: 3, title: "Determination of Gold in Gold Bullion, Gold Alloys and Gold Jewellery/Artefacts — Cupellation (Fire Assay) Method", category: "hallmark", status: "current", mandatory: false, scheme: "BIS Hallmarking Scheme", qco: null, summary: "Referee method for determining gold content by cupellation (fire assay) — sampling, cupel and flux preparation, parting and calculation of fineness in parts per thousand.", keywords: ["fire assay", "gold assay", "cupellation", "fineness", "सोना परख"], sections: [{ clause: "3", title: "Apparatus and reagents", summary: "Cupels, muffle furnace, parting acid and standard silver requirements." }, { clause: "6", title: "Procedure", summary: "Cupellation, parting and weighing of the gold bead." }, { clause: "8", title: "Calculation", summary: "Fineness expressed in parts per thousand." }], related: ["IS 1417:2016"] },
+  { code: "IS 2113:2014", editions: 2, title: "Assaying of Silver in Silver and Silver Alloys — Methods", category: "hallmark", status: "current", mandatory: false, scheme: "BIS Hallmarking Scheme (voluntary for silver)", qco: null, summary: "Methods for determination of silver content in silver and silver alloys by cupellation and by volumetric (potentiometric) titration — sampling, procedure and reporting of fineness.", keywords: ["silver assay", "silver fineness", "cupellation", "titration", "चांदी"], sections: [{ clause: "3", title: "Reagents", summary: "Standard silver and titrant preparation." }, { clause: "6", title: "Procedure", summary: "Cupellation and titration procedures for silver." }, { clause: "8", title: "Reporting", summary: "Fineness reported in parts per thousand." }], related: ["IS 2112:2014", "IS 1418:2016"] },
+  { code: "IS 15820:2009", editions: 1, title: "Assaying and Hallmarking Centres — Requirements", category: "hallmark", status: "current", mandatory: false, scheme: "BIS Hallmarking Scheme", qco: null, summary: "Requirements for BIS-recognized Assaying and Hallmarking Centres — laboratory infrastructure, fire assay and XRF equipment, competent assayers, record keeping, sample custody and laser marking of the HUID.", keywords: ["AHC", "hallmarking centre", "assaying", "HUID", "हॉलमार्किंग"], sections: [{ clause: "4", title: "Infrastructure", summary: "Laboratory, equipment and reference material requirements." }, { clause: "6", title: "Personnel", summary: "Qualification and competence of assayers." }, { clause: "9", title: "Records and marking", summary: "Sample custody, job records and hallmarking/HUID marking." }], related: ["IS 1417:2016", "IS 2112:2014"] },
   { code: "IS 9873-2:2017", editions: 2, title: "Safety of Toys — Part 2: Flammability Test Method for Certain Toys", category: "consumer", status: "current", mandatory: true, scheme: "ISI Mark (Scheme-I)", qco: TOY_QCO, summary: "Flammability of defined categories of toys — test method and pass criteria for materials a child may bring near a flame during play.", keywords: ["toy safety", "flammability", "toy test", "toy", "खिलौना"], sections: [{ clause: "5", title: "Apparatus", summary: "Test flame and specimen holder requirements." }, { clause: "8", title: "Criteria", summary: "Pass criteria by material and toy category." }], related: ["IS 9873-3:2017"] },
   { code: "IS 15644:2006", editions: 2, title: "Water for Pharmaceutical Use — Specification", category: "food", status: "current", mandatory: false, scheme: "Specification (voluntary)", qco: null, summary: "Purified water and water for injection for pharmaceutical manufacture — conductivity, microbial limits, endotoxin and storage requirements.", keywords: ["pharmaceutical water", "water", "injection", "purified", "जल"], sections: [{ clause: "5", title: "Grades", summary: "Purified water and water for injection grades." }, { clause: "8", title: "Tests", summary: "Conductivity, microbial and endotoxin tests." }], related: ["IS 10500:2012"] },
   { code: "IS 16240:2015", editions: 2, title: "Water Purifiers — Specification", category: "consumer", status: "current", mandatory: false, scheme: "Specification (voluntary)", qco: null, summary: "Household and community water purifiers using reverse osmosis, ultrafiltration or ultraviolet treatment — contaminant reduction and microbiological safety requirements.", keywords: ["water purifier", "ro", "uv", "filter", "पानी"], sections: [{ clause: "5", title: "Types", summary: "RO, UF and UV based purifier types." }, { clause: "8", title: "Performance", summary: "Contaminant reduction and microbial safety tests." }], related: ["IS 10500:2012"] },
@@ -1386,6 +1398,23 @@ export const LICENCES_WAVE3 = [
 
 /* ------------------------- SAMPLE COMPLAINTS ------------------------- */
 
+/* ------------------------ EXPANDED LAB NETWORK (WAVES 8+) ------------------------ */
+/* `seed-labs.ts` carries the full testing network — BIS laboratories, National
+ * Test House, the STQC/ERTL/ETDC electronics network, CSIR and government
+ * laboratories, private recognized labs in every state/UT and the AHC network.
+ * Rows that repeat the original seed's lab names are dropped so the directory
+ * never shows a facility twice. */
+
+const ORIGINAL_LAB_NAMES = new Set(
+  [...LABS, ...LABS_MORE, ...LABS_WAVE3].map((l) => l.name),
+);
+
+export const LABS_NETWORK_UNIQUE = buildLabs(LABS_NETWORK).filter(
+  (l) => !ORIGINAL_LAB_NAMES.has(l.name),
+);
+
+/* ------------------------- SAMPLE COMPLAINTS ------------------------- */
+
 export const COMPLAINTS = [
   { ticket: "BISC-2025-000112", name: "Ramesh Iyer", email: "ramesh.iyer@example.com", category: "product-quality", product: "Cement", description: "Cement bags purchased from a local dealer are not gaining strength. The ISI mark and licence number are present but the batch appears old and lumpy.", status: "open", createdAt: new Date("2025-04-02") },
   { ticket: "BISC-2025-000148", name: "Priya Sharma", email: "priya.sharma@example.com", category: "marking misuse", product: "TMT bars", description: "Dealer supplied TMT bars with an ISI mark but no licence number on the bundle tag. Requesting verification of the marking before I use them.", status: "in-progress", createdAt: new Date("2025-04-11") },
@@ -1418,14 +1447,32 @@ export async function seed(dbOverride?: typeof db) {
     ...STD_WAVE5,
     ...STD_WAVE6,
     ...STD_WAVE7,
+    ...STD_WAVE8,
+    ...STD_WAVE9,
+    ...STD_WAVE10,
+    ...STD_WAVE11,
+    ...STD_WAVE12,
+    ...STD_WAVE13,
+    ...STD_WAVE14,
+    ...STD_WAVE15,
+    ...STD_WAVE16,
   ];
   const ALL_DOCS = [...DOCS, ...DOCS_MORE, ...DOCS_WAVE3];
-  const ALL_LABS = [...LABS, ...LABS_MORE, ...LABS_WAVE3];
+  const ALL_LABS = [
+    ...LABS,
+    ...LABS_MORE,
+    ...LABS_WAVE3,
+    ...LABS_NETWORK_UNIQUE,
+  ];
   const ALL_LICENCES = [...LICENCES, ...LICENCES_MORE, ...LICENCES_WAVE3];
 
-  await target.insert(standards).values(ALL_STANDARDS as never);
+  /* insert in chunks — the expanded catalogue is ~2000 rows */
+  const CHUNK = 250;
+  for (let i = 0; i < ALL_STANDARDS.length; i += CHUNK)
+    await target.insert(standards).values(ALL_STANDARDS.slice(i, i + CHUNK) as never);
   await target.insert(knowledgeDocs).values(ALL_DOCS as never);
-  await target.insert(labs).values(ALL_LABS as never);
+  for (let i = 0; i < ALL_LABS.length; i += CHUNK)
+    await target.insert(labs).values(ALL_LABS.slice(i, i + CHUNK) as never);
   await target.insert(licences).values(ALL_LICENCES as never);
 
   /* complaints are demo rows — replace wholesale so re-seeding is idempotent */
