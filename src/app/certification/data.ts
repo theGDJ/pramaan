@@ -207,7 +207,7 @@ export const SCHEMES: Scheme[] = [
     ],
     labCapability: "mechanical",
     ask: "I manufacture abroad and want to export to India. Explain the FMCS process and costs.",
-    standardsQuery: "FMCS",
+    standardsQuery: "quality control order",
   },
   {
     id: "hallmark",

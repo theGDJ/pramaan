@@ -77,7 +77,7 @@ const MEDICAL_ELECTRICAL: Block = {
     ["IS/IEC 60601-2-49:2016", "Medical Electrical Equipment — Part 2-49: Particular Requirements for Multifunction Patient Monitoring Equipment", "Multifunction patient monitor alarm, accuracy and safety requirements."],
     ["IS/IEC 60601-2-50:2016", "Medical Electrical Equipment — Part 2-50: Particular Requirements for Infant Phototherapy Equipment", "Infant phototherapy irradiance, eye protection and safety requirements."],
     ["IS/ISO 13485:2016", "Medical Devices — Quality Management Systems — Requirements for Regulatory Purposes", "Quality management system requirements for medical device design, manufacture and servicing.", "V", { keywords: ["iso 13485", "quality management", "medical device"] }],
-    ["IS 3055-1:1965", "Hypodermic Syringes — Part 1: With Metal and Glass Components", "Syringe dimensions, graduation and sterility requirements.", "Q:Medical Devices (Quality Control) Order"],
+    ["IS 10258-1:2022", "Sterile Hypodermic Syringes for Single Use — Part 1: Syringes for Manual Use", "Design, dimensions, graduation, leak and sterility requirements for single-use manual syringes (identical with ISO 7886-1).", "Q:Medical Devices (Quality Control) Order"],
     ["IS 11196:1985", "Blood Transfusion Sets — Specification", "Transfusion set components, flow rate and sterility requirements.", "Q:Medical Devices (Quality Control) Order"],
     ["IS 11197:1985", "Urine Collection Bags — Specification", "Urine bag capacity, tubing and sterility requirements.", "Q:Medical Devices (Quality Control) Order"],
     ["IS 14658:1999", "Sterile Hypodermic Needles for Single Use — Specification", "Needle dimensions, sharpness and sterility requirements.", "Q:Medical Devices (Quality Control) Order"],
